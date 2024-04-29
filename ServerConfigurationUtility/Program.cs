@@ -1,16 +1,28 @@
 ﻿using Newtonsoft.Json;
-using ServerConfigurationUtility;
+using ServerConfigurationUtility.Dto;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text;
-using System.Xml;
+using System.Threading.Tasks;
+using System.Xml.Linq;
 
-
-class Program
+namespace ServerConfigurationUtility
 {
-    public static void Main()
+    public class Program
     {
-       
-        ServerConfiguration config = new();
-        config.GenerateServerConfiguration();
+        static void Main()
+        {
+            string RootPath = AppDomain.CurrentDomain.BaseDirectory;
+            string xmlFilePath = Path.Combine(RootPath, "ServerConfiguration.xml");
+            XDocument doc = XDocument.Load(xmlFilePath);
 
+            ServerUtility.TraverseAndUpdateXML(doc.Root);
+         
+           
+            doc.Save(xmlFilePath);
+
+            Console.WriteLine("XML traversal and element value update completed. Updated XML saved.");
+        }
     }
 }

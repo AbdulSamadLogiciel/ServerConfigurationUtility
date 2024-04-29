@@ -1,14 +1,10 @@
-﻿namespace ServerConfigurationUtility.Dto
+﻿using System.Collections.Generic;
+
+namespace ServerConfigurationUtility.Dto
 {
-    public class ServerConfig
-    {
-        public int Port { get; set; }
-        public bool IsDefault { get; set; }
-        public bool IsJwtTokenAllowed { get; set; }
-    }
 
     public class RootObject
     {
-        public List<ServerConfig>? ServerConfig { get; set; }
+        public List<Dictionary<string, string>>? ServerConfig { get; set; }
     }
 }
