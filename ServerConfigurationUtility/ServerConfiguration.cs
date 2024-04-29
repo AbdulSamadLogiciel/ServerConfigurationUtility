@@ -9,13 +9,13 @@ namespace ServerConfigurationUtility
     {
 
         private readonly string RootPath;
-        private readonly string FilePath;
+        private readonly string ConfigurationPath;
         private readonly string Json;
         public ServerConfiguration()
         {
             RootPath = AppDomain.CurrentDomain.BaseDirectory;
-            FilePath = Path.Combine(RootPath, "Config.json");
-            Json = File.ReadAllText(FilePath);
+            ConfigurationPath = Path.Combine(RootPath, "Config.json");
+            Json = File.ReadAllText(ConfigurationPath);
         }
 
         private static void RemoveLastElement(StringBuilder xmlStringBuilder)
