@@ -20,11 +20,11 @@ namespace ServerConfigurationUtility
         public static void TraverseAndUpdateXML(XElement element)
         {
 
-            if(element.Name.LocalName == "DataAccessConfigurations")
+          
+            if(element.Name.LocalName == "DataAccessQueryServerConfiguration" || element.Name.LocalName == "DataAccessConfigurations")
             {
                 count++;
                 isDataAccessServers = true;
-                
             }
            
             
@@ -33,7 +33,7 @@ namespace ServerConfigurationUtility
                 
                 element.Value = rootObject.ServerConfig[count][element.Name.ToString()];
             }
-            
+
             
             foreach (XElement child in element.Elements())
             {
