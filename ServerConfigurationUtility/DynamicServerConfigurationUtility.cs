@@ -48,12 +48,12 @@ namespace ServerConfigurationUtility
 
                         XDocument doc = XDocument.Load(xmlFilePath);
                         TraverseAndUpdateXML(doc.Root, rootObject);
-
                         var outputTemplatePath = $"..\\..\\..\\ServerConfigs_QA\\{item.Environment}\\{item.project}\\{GetName(directory)}\\ServerConfiguration.xml";
                         doc.Save(outputTemplatePath);
-                        count = -1;
-                        isDataAccessServers = false;
+                      
                     }
+                    count = -1;
+                    isDataAccessServers = false;
                 }
 
                 
@@ -101,7 +101,7 @@ namespace ServerConfigurationUtility
             }
 
 
-            if (isDataAccessServers && rootObject.ServerConfig[count].ContainsKey(element.Name.LocalName))
+            if (isDataAccessServers && count <= rootObject.ServerConfig.Count() - 1  && rootObject.ServerConfig[count].ContainsKey(element.Name.LocalName))
             {
 
                 element.Value = rootObject.ServerConfig[count][element.Name.ToString()];
