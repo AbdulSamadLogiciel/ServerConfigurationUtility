@@ -45,7 +45,7 @@ namespace ServerConfigurationUtility
                     
 
                     /* Config.json path */
-                    var configPath = GetConfig(item.project, GetName(directory));
+                    var configPath = GetConfig(item, GetName(directory));
                     Console.WriteLine(configPath);
 
 
@@ -77,10 +77,10 @@ namespace ServerConfigurationUtility
             return lastDirectory;
         }
 
-        public  string GetConfig(string project, string serverName)
+        public string GetConfig(ConfigurationItem  item, string serverName)
         {
 
-            var configPath = $"{_config["Configurations:ServerConfigs"]}{project}";
+            var configPath = $"{_config["Configurations:ServerConfig_QA"]}{item.Environment}\\{item.project}Configs";
             
             string serverConfig = Path.Combine(configPath, serverName);
 
