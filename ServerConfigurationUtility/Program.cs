@@ -1,12 +1,5 @@
-﻿using Newtonsoft.Json;
-using ServerConfigurationUtility.Dto;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Linq;
+﻿using Microsoft.Extensions.Configuration;
+
 
 namespace ServerConfigurationUtility
 {
@@ -14,22 +7,23 @@ namespace ServerConfigurationUtility
     {
         static void Main()
         {
-            /*
-            string RootPath = AppDomain.CurrentDomain.BaseDirectory;
-            string xmlFilePath = Path.Combine(RootPath, "ServerConfiguration.xml");
-            XDocument doc = XDocument.Load(xmlFilePath);
+    
+            string currentDirectory = Directory.GetCurrentDirectory();
+            string configFilePath = Path.Combine(currentDirectory, "..", "..", "..", "appsettings.json");
+      
+            var builder = new ConfigurationBuilder();
+            builder.SetBasePath(Directory.GetCurrentDirectory())
+                   .AddJsonFile(configFilePath, optional: false, reloadOnChange: true);
 
-            ServerUtility.TraverseAndUpdateXML(doc.Root);
-         
-           
-            doc.Save(xmlFilePath);
+            IConfiguration config = builder.Build();
 
-            Console.WriteLine("XML traversal and element value update completed. Updated XML saved.");
-        
-        */
-            DynamicServerConfigurationUtility.ModifyFile();
+            DynamicServerConfigurationUtility serverConfig = new DynamicServerConfigurationUtility(config);
+            serverConfig.ModifyFile();
+
+
 
 
         }
+       
     }
 }

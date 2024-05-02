@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json;
 using ServerConfigurationUtility.Dto;
 using System.Xml.Linq;
 
@@ -6,17 +7,25 @@ namespace ServerConfigurationUtility
 {
     public class DynamicServerConfigurationUtility
     {
-        static readonly string RootPath = AppDomain.CurrentDomain.BaseDirectory;
-        static readonly string ConfigurationPath = Path.Combine(RootPath, "MasterConfiguration.json");
-        static readonly string Json = File.ReadAllText(ConfigurationPath);
-        static readonly MasterConfiguration? masterConfiguration = JsonConvert.DeserializeObject<MasterConfiguration>(Json);
+       
 
 
         static int count = -1;
         static bool isDataAccessServers = false;
+        private readonly IConfiguration _config;
+
+        public DynamicServerConfigurationUtility(IConfiguration config) { 
         
-        public static void ModifyFile()
+            _config = config;
+        }
+        
+        public void ModifyFile()
         {
+           string RootPath = AppDomain.CurrentDomain.BaseDirectory;
+           string ConfigurationPath = Path.Combine(RootPath, _config["Configurations:MasterConfiguration"]);
+           string Json = File.ReadAllText(ConfigurationPath);
+           MasterConfiguration? masterConfiguration = JsonConvert.DeserializeObject<MasterConfiguration>(Json);
+
             _ = masterConfiguration ?? throw new Exception("Master configuration is invalid.");
             foreach (ConfigurationItem item in masterConfiguration.ConfigurationItems)
             {
@@ -24,7 +33,7 @@ namespace ServerConfigurationUtility
 
                 
                 /* Server Templates */
-                var templatePath = $"..\\..\\..\\ServerConfigs_QA\\ServerTemplates\\{item.project}";
+                var templatePath = $"{_config["Configurations:ServerTemplates"]}{item.project}";
                 string[] directories = Directory.GetDirectories(templatePath);
 
                 foreach (string directory in directories)
@@ -32,7 +41,7 @@ namespace ServerConfigurationUtility
 
 
                     /* Server Configuration Template */
-                    var xmlFilePath = Path.Combine(directory, "ServerConfiguration.xml");
+                    var xmlFilePath = Path.Combine(directory, _config["Configurations:ServerFileName"]);
                     
 
                     /* Config.json path */
@@ -40,15 +49,15 @@ namespace ServerConfigurationUtility
                     Console.WriteLine(configPath);
 
 
-                    string Json = File.ReadAllText(configPath);
-                    RootObject? rootObject = JsonConvert.DeserializeObject<RootObject>(Json);
+                    string JsonConfig = File.ReadAllText(configPath);
+                    RootObject? rootObject = JsonConvert.DeserializeObject<RootObject>(JsonConfig);
 
                     if (rootObject != null)
                     {
 
                         XDocument doc = XDocument.Load(xmlFilePath);
                         TraverseAndUpdateXML(doc.Root, rootObject);
-                        var outputTemplatePath = $"..\\..\\..\\ServerConfigs_QA\\{item.Environment}\\{item.project}\\{GetName(directory)}\\ServerConfiguration.xml";
+                        var outputTemplatePath = $"{_config["Configurations:ServerConfig_QA"]}{item.Environment}\\{item.project}\\{GetName(directory)}\\{_config["Configurations:ServerFileName"]}";
                         doc.Save(outputTemplatePath);
                       
                     }
@@ -68,10 +77,10 @@ namespace ServerConfigurationUtility
             return lastDirectory;
         }
 
-        public static string GetConfig(string project, string serverName)
+        public  string GetConfig(string project, string serverName)
         {
 
-            var configPath = $"..\\..\\..\\ServerConfigs_QA\\ServerConfigs\\{project}";
+            var configPath = $"{_config["Configurations:ServerConfigs"]}{project}";
             
             string serverConfig = Path.Combine(configPath, serverName);
 
@@ -90,11 +99,11 @@ namespace ServerConfigurationUtility
         }
 
 
-        public static void TraverseAndUpdateXML(XElement element, RootObject? rootObject)
+        public  void TraverseAndUpdateXML(XElement element, RootObject? rootObject)
         {
 
 
-            if (element.Name.LocalName == "DataAccessQueryServerConfiguration" || element.Name.LocalName == "DataAccessConfigurations")
+            if (element.Name.LocalName == _config["Configurations:DataAccessQueryServerConfiguration"] || element.Name.LocalName == _config["Configurations:DataAccessConfigurations"])
             {
                 count++;
                 isDataAccessServers = true;
