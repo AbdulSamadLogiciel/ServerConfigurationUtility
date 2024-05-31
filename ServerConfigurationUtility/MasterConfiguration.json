@@ -1,0 +1,8 @@
+{
+"ConfigurationItems": [
+	{
+		"Environment" : "QA_130",
+		"Project" : "QueryServer"
+	}
+]
+}

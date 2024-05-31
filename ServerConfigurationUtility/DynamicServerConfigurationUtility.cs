@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
+using Serilog;
 using ServerConfigurationUtility.Dto;
 using System.Xml.Linq;
 
@@ -7,9 +8,6 @@ namespace ServerConfigurationUtility
 {
     public class DynamicServerConfigurationUtility
     {
-       
-
-
         static int count = -1;
         static bool isDataAccessServers = false;
         private readonly IConfiguration _config;
@@ -21,12 +19,18 @@ namespace ServerConfigurationUtility
         
         public void ModifyFile()
         {
-           string RootPath = AppDomain.CurrentDomain.BaseDirectory;
-           string ConfigurationPath = Path.Combine(RootPath, _config["Configurations:MasterConfiguration"]);
+        
+           string ConfigurationPath =  _config["Configurations:MasterConfiguration"];
+           if (!File.Exists(ConfigurationPath))
+           {
+              Log.Error("Master Configuration file is missing in {@time}", DateTime.Now);
+              throw new Exception("Master configuration file was not found!");
+           }
            string Json = File.ReadAllText(ConfigurationPath);
            MasterConfiguration? masterConfiguration = JsonConvert.DeserializeObject<MasterConfiguration>(Json);
 
-            _ = masterConfiguration ?? throw new Exception("Master configuration is invalid.");
+           
+          
             foreach (ConfigurationItem item in masterConfiguration.ConfigurationItems)
             {
                 Console.WriteLine($"Project: {item.project} Environment: {item.Environment}");
@@ -38,31 +42,52 @@ namespace ServerConfigurationUtility
 
                 foreach (string directory in directories)
                 {
-
-
-                    /* Server Configuration Template */
-                    var xmlFilePath = Path.Combine(directory, _config["Configurations:ServerFileName"]);
-                    
-
-                    /* Config.json path */
-                    var configPath = GetConfig(item, GetName(directory));
-                    Console.WriteLine(configPath);
-
-
-                    string JsonConfig = File.ReadAllText(configPath);
-                    RootObject? rootObject = JsonConvert.DeserializeObject<RootObject>(JsonConfig);
-
-                    if (rootObject != null)
+                    try
                     {
+                        var xmlFilePath = Path.Combine(directory, _config["Configurations:ServerFileName"]);
+                        if (!File.Exists(xmlFilePath))
+                        {
+                            Log.Warning("ServerConfiguration.xml is missing inside {@name} in Server templates, Path is {@filePath}", GetName(directory),  xmlFilePath);
+                            continue;
+                        }
 
-                        XDocument doc = XDocument.Load(xmlFilePath);
-                        TraverseAndUpdateXML(doc.Root, rootObject);
-                        var outputTemplatePath = $"{_config["Configurations:ServerConfig_QA"]}{item.Environment}\\{item.project}\\{GetName(directory)}\\{_config["Configurations:ServerFileName"]}";
-                        doc.Save(outputTemplatePath);
-                      
+                        /* Config.json path */
+                        var configPath = GetConfig(item, GetName(directory));
+                        if (!File.Exists(configPath))
+                        {
+                            Log.Warning("Config.json is missing inside {@name}, Path is {@path}", GetName(directory), configPath);
+                            continue;
+                        }
+
+
+                        string JsonConfig = File.ReadAllText(configPath);
+                        RootObject? rootObject = JsonConvert.DeserializeObject<RootObject>(JsonConfig);
+
+                        if (rootObject != null)
+                        {
+
+                            XDocument doc = XDocument.Load(xmlFilePath);
+                            TraverseAndUpdateXML(doc.Root, rootObject);
+                            var outputTemplatePath = $"{_config["Configurations:ServerConfig_QA"]}{item.Environment}\\{item.project}\\{GetName(directory)}\\{_config["Configurations:ServerFileName"]}";
+                            if (!File.Exists(outputTemplatePath))
+                            {
+                                Log.Warning("ServerConfiguration.xml is missing at {@path}", outputTemplatePath);
+                                continue;
+                            }
+                            doc.Save(outputTemplatePath);
+
+                        }
+                        count = -1;
+                        isDataAccessServers = false;
+                        
                     }
-                    count = -1;
-                    isDataAccessServers = false;
+                    catch (Exception ex) {
+                        Log.Error("Something went wrong! Your StackTrace: {@StackTrace} in {@time}", ex.StackTrace, DateTime.Now);
+                        continue;
+                    }
+
+                    
+                    
                 }
 
                 
@@ -87,15 +112,8 @@ namespace ServerConfigurationUtility
             
             string configFilePath = Path.Combine(serverConfig, "config.json");
 
-            
-            if (File.Exists(configFilePath))
-            {
-                return configFilePath;
-            }
-            else
-            {
-                throw new FileNotFoundException($"The config.json file was not found in the '{serverConfig}' directory.");
-            }
+
+            return configFilePath;
         }
 
 
