@@ -13,9 +13,9 @@ namespace ServerConfigurationUtility
             try
             {
 
-
+           
                 Serilogger.InitializeLogging();
-
+                Log.Information("Utility Started");
                 string currentDirectory = Directory.GetCurrentDirectory();
                 string configFilePath = Path.Combine(currentDirectory, "..", "..", "..", "appsettings.json");
 
@@ -26,7 +26,10 @@ namespace ServerConfigurationUtility
                 IConfiguration config = builder.Build();
 
                 DynamicServerConfigurationUtility serverConfig = new DynamicServerConfigurationUtility(config);
+                
                 serverConfig.ModifyFile();
+
+                Log.Information("Utility Ended");
             } catch (Exception ex)
             {
                 Log.Error("Something went wrong! Your StackTrace: {@StackTrace} in {@time}", ex.StackTrace, DateTime.Now);

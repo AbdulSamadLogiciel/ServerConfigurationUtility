@@ -3,7 +3,7 @@
 	{
 		"Environment": "QA_130",
 		"Project": "QueryServer"
-	}
+	},
 	{
 		"Environment": "QA_130",
 		"Project": "DataAccessServer"
