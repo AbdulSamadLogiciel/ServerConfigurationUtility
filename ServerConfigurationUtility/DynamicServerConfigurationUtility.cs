@@ -33,7 +33,7 @@ namespace ServerConfigurationUtility
           
             foreach (ConfigurationItem item in masterConfiguration.ConfigurationItems)
             {
-                Console.WriteLine($"Project: {item.project} Environment: {item.Environment}");
+                Log.Information("Project: {project} Environment: {env}", item.project, item.Environment);
 
                 
                 /* Server Templates */
